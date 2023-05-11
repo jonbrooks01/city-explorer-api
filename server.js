@@ -2,6 +2,7 @@
 
 require('dotenv').config();
 const express = require('express');
+const axios = require('axios');
 const cors = require('cors');
 const weatherData = require('./data/weather.json')
 
@@ -15,26 +16,28 @@ app.get('/', (request, response) => {
   response.status(200).send('Hi! Your default port is working')
 });
 
-app.get('/weather', (request, response, next) =>{
+app.get('/weather', getWeather); 
+
+async function getWeather (request, response, next) {
   try {
-    const {searchQuery} = request.query
-    console.log(searchQuery)
-    const cityData = weatherData.find((city) => city.city_name === searchQuery)
-    console.log(cityData)
-    const formattedData = cityData.data.map(day => new Forecast(day))
+    const {lat,lon} = request.query
+    const url = `https://api.weatherbit.io/v2.0/forecast/daily?lat=${lat}&lon=${lon}&key=${process.env.WEATHER_API_KEY}`
+    const weatherResponse = await axios.get(url);
+    const formattedData = weatherResponse.data.data.map(day => new Forecast(day))
     response.status(200).send(formattedData);
   }
   catch (error) {
     next(error);
   }
-});
+};
+
 
 class Forecast {
   constructor(obj) {
     this.date = obj.datetime
     this.description = obj.weather.description
-    this.lowTemp = obj.low_temp
-    this.highTemp = obj.max_temp
+    this.temp = obj.temp
+    this.appTemp = obj.app_temp
   }
 }
 
@@ -43,7 +46,7 @@ app.get('*', (req, res) => {
 });
 
 app.use((error,req,res,next) => {
-  res.status(500).send(error.message);
+  res.status(500).send('Hey, its broken sorry!');
 });
 
 app.listen(PORT, () => console.log(`listening on ${PORT}`));
