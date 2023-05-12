@@ -31,6 +31,38 @@ async function getWeather (request, response, next) {
   }
 };
 
+app.get('/', (request, response) => {
+  response.status(200).send('Hi! Your default port is still working')
+})
+
+app.get('/movie', getMovies);
+
+async function getMovies (request, response, next){
+  try{
+    const film = request.query.film
+    const url1 = `https://api.themoviedb.org/3/search/movie?api_key=${process.env.MOVIE_API_KEY}&query=${film}`;
+    const movieResponse = await axios.get(url1);
+    const formatData = movieResponse.data.results.map(film1 => new Movie(film1))
+    response.status(200).send(formatData);
+    console.log(formatData);
+  }
+  catch(error){
+    next(error);
+  }
+};
+
+class Movie {
+  constructor(obj) {
+    this.name = obj.title
+    this.overview = obj.overview
+    this.average_vote = obj.vote_average
+    this.count = obj.vote_count
+    this.release_date = obj.release_date
+    this.popularity = obj.popularity
+    this.poster = obj.poster_path
+  }
+}
+
 
 class Forecast {
   constructor(obj) {
