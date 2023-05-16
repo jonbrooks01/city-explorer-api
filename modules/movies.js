@@ -10,6 +10,7 @@ function getMovies (request, response, next){
     .then(res => res.data.results.map(movie  => new Movie(movie)))
     .then(formatData => response.status(200).send(formatData))
     .catch(err => next(err))
+
   };
   // catch(error){
   //   next(error);
@@ -17,7 +18,7 @@ function getMovies (request, response, next){
 
 class Movie {
   constructor(obj) {
-    this.name = obj.title
+    this.name = obj.original_title
     this.overview = obj.overview
     this.average_vote = obj.vote_average
     this.count = obj.vote_count
@@ -26,5 +27,6 @@ class Movie {
     this.poster = obj.poster_path
   }
 }
+
 
 module.exports = getMovies;
